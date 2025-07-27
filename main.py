@@ -1,61 +1,65 @@
 import streamlit as st
 import asyncio
 import nest_asyncio
+import os
+from dotenv import load_dotenv
 from openai import AsyncOpenAI
 from agents import Agent, OpenAIChatCompletionsModel, Runner, set_tracing_disabled
 
+# Load environment variables from .env file
+load_dotenv()
+
+# Apply nested asyncio compatibility (required by Streamlit)
 nest_asyncio.apply()
 set_tracing_disabled(True)
+
+# Streamlit UI config
 st.set_page_config(page_title="Gemini Agent Chat", page_icon="🤖")
+st.title("🤖 Maryam AI Chat")
 
-st.title("🤖 Maryam Ai Chat ")
+# === Configuration ===
+API_KEY = os.getenv("GEMINI_API_KEY")
+BASE_URL = "https://generativelanguage.googleapis.com/v1beta/openai/"
+MODEL_NAME = "gemini-2.0-flash"
 
-# Initialize session state variables
+# Check API key
+if not API_KEY:
+    st.error("❌ GEMINI_API_KEY not found in environment variables. Please set it in your .env file.")
+    st.stop()
+
+# Initialize session state
 if "agent" not in st.session_state:
-    st.session_state.agent = None
+    try:
+        client = AsyncOpenAI(api_key=API_KEY, base_url=BASE_URL)
+        st.session_state.agent = Agent(
+            name="Assistant",
+            instructions="You are an expert of agentic AI.",
+            model=OpenAIChatCompletionsModel(model=MODEL_NAME, openai_client=client),
+        )
+        st.success("✅ Agent initialized automatically.")
+    except Exception as e:
+        st.session_state.agent = None
+        st.error(f"❌ Failed to initialize agent: {e}")
+
 if "chat_history" not in st.session_state:
     st.session_state.chat_history = []
 
-# Sidebar configuration panel
-with st.sidebar:
-    st.header("🔧 Configuration")
-    api_key = st.text_input("GEMINI API Key", type="password")
-    base_url = st.text_input(
-        "Base URL",
-        value="https://generativelanguage.googleapis.com/v1beta/openai/",
-    )
-    model_name = st.text_input("Model", value="gemini-2.0-flash")
-
-    if st.button("Initiate Agent"):
-        if not api_key:
-            st.error("❌ API key is required.")
-        else:
-            client = AsyncOpenAI(api_key=api_key, base_url=base_url)
-            agent = Agent(
-                name="Assistant",
-                instructions="You are an expert of agentic AI.",
-                model=OpenAIChatCompletionsModel(model=model_name, openai_client=client),
-            )
-            st.session_state.agent = agent
-            st.success("✅ Agent initiated successfully!")
-
-# Main Chat UI
+# === Chat Interface ===
 if st.session_state.agent:
-    # Show previous messages
+    # Display chat history
     for sender, message in st.session_state.chat_history:
         with st.chat_message(sender.lower()):
             st.markdown(message)
 
-    # Input message
+    # Chat input field
     user_input = st.chat_input("Type your message...")
 
     if user_input:
-        # Append user message
         st.session_state.chat_history.append(("User", user_input))
         with st.chat_message("user"):
             st.markdown(user_input)
 
-        # Generate assistant response
+        # Async call to Gemini agent
         async def run_agent():
             return await Runner.run(st.session_state.agent, user_input)
 
@@ -71,4 +75,4 @@ if st.session_state.agent:
             with st.chat_message("assistant"):
                 st.error(f"Agent error: {e}")
 else:
-    st.warning("⚠️ Please enter your credentials and initiate the agent from the sidebar.")
+    st.warning("⚠️ Agent is not initialized. Please check your API key or internet connection.")
