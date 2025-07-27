@@ -6,14 +6,14 @@ from dotenv import load_dotenv
 from openai import AsyncOpenAI
 from agents import Agent, OpenAIChatCompletionsModel, Runner, set_tracing_disabled
 
-# Load environment variables from .env file
-load_dotenv()
+# ✅ Load environment variables from .env file explicitly
+load_dotenv(dotenv_path=".env")
 
-# Apply nested asyncio compatibility (required by Streamlit)
+# ✅ Enable nested asyncio for Streamlit
 nest_asyncio.apply()
 set_tracing_disabled(True)
 
-# Streamlit UI config
+# ✅ Streamlit UI setup
 st.set_page_config(page_title="Gemini Agent Chat", page_icon="🤖")
 st.title("🤖 Maryam AI Chat")
 
@@ -22,12 +22,12 @@ API_KEY = os.getenv("GEMINI_API_KEY")
 BASE_URL = "https://generativelanguage.googleapis.com/v1beta/openai/"
 MODEL_NAME = "gemini-2.0-flash"
 
-# Check API key
+# ✅ Check API key
 if not API_KEY:
     st.error("❌ GEMINI_API_KEY not found in environment variables. Please set it in your .env file.")
     st.stop()
 
-# Initialize session state
+# ✅ Initialize session state
 if "agent" not in st.session_state:
     try:
         client = AsyncOpenAI(api_key=API_KEY, base_url=BASE_URL)
