@@ -1,5 +1,22 @@
+# --- Existing ---
 openai>=1.77.0
 openai-agents==0.0.11
 python-dotenv>=1.1.0
 streamlit>=1.10.0
 nest_asyncio
+
+# --- New for voice-to-text ---
+SpeechRecognition
+pyaudio ; platform_system == "Windows"  # for microphone input on Windows
+pydub
+ffmpeg-python  # required for audio format conversion (WAV/MP3)
+
+# --- New for image/pdf/document upload ---
+Pillow           # image file support
+pdfplumber       # extract text from PDFs
+PyMuPDF          # another PDF/text/image tool
+
+# --- Optional useful tools ---
+aiofiles         # async file handling
+httpx            # modern async HTTP client (sometimes useful with agents)
+requests         # standard HTTP client
