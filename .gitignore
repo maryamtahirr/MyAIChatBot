@@ -1,1 +1,15 @@
+# Ignore sensitive files
 .env
+*.pyc
+__pycache__/
+.idea/
+.vscode/
+*.log
+
+# Streamlit or internal config
+.streamlit/secrets.toml
+secrets.toml
+
+# GitHub/Render artifacts
+*.DS_Store
+*.egg-info/
